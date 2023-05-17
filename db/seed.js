@@ -8,7 +8,9 @@ const {
     getPostsByUser,
     createPost,
     updatePost,
-    getUserById
+    getUserById,
+    addTagsToPost,
+    createTags
 } = require('./index');
 
 // this function should calll a query which drops all tables from our database 
@@ -19,6 +21,8 @@ async function dropTables(){
         console.log('Starting to drop tables…');
 
         await client.query(`
+        DROP TABLE IF EXISTS post_tags;
+        DROP TABLE IF EXISTS tags;
         DROP TABLE IF EXISTS posts;
         DROP TABLE IF EXISTS users;
         
@@ -55,7 +59,21 @@ async function createTables() {
             content TEXT NOT NULL,
             active BOOLEAN DEFAULT true
         );
+
+        CREATE TABLE tags (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL UNIQUE
+        );
+        
+        CREATE TABLE post_tags (
+            "postId" INTEGER REFERENCES posts(id),
+            "tagId" INTEGER REFERENCES tags(id), 
+            unique("postId", "tagId")
+
+        );
+        
         `);
+        
 
         console.log('Finished building tables!');
     } catch (error) {
@@ -89,8 +107,25 @@ async function createInitialPosts() {
       await createPost({
         authorId: albert.id,
         title: "First Post",
-        content: "This is my first post. I hope I love writing blogs as much as I love writing them."
+        content: "This is my first post. I hope I love writing blogs as much as I love writing them.",
+        tags: ["#happy", "#youcandoanything"]
       });
+
+      await createPost({
+        authorId: sandra.id,
+        title: "Second Post",
+        content: "This is my second post.",
+        tags: ["#happy", "#worst-day-ever"]
+      });
+
+      await createPost({
+        authorId: glamgal.id,
+        title: "Third Post",
+        content: "This is my third post. ",
+        tags: ["#happy", "#youcandoanything", "#canmandoeverything"]
+      });
+
+    
   
       // a couple more
     } catch (error) {
@@ -100,6 +135,8 @@ async function createInitialPosts() {
 
 
 async function rebuildDB() {
+
+    console.log('NEW TEST --------------------------------------------------------------------')
     try {
         client.connect();
 
@@ -120,29 +157,30 @@ async function testDB(){
 
         console.log("Calling getAllUsers");
         const users = await getAllUsers();
-        console.log("Result:", users);
+        
     
         console.log("Calling updateUser on users[0]");
         const updateUserResult = await updateUser(users[0].id, {
           name: "Newname Sogood",
           location: "Lesterville, KY"
         });
-        console.log("Result:", updateUserResult);
+        
     
         console.log('Getting all posts…');
         const posts = await getAllPosts();
-        console.log('posts: ', posts);
+        
     
-        console.log("Calling updatePost on posts[0]");
-        const updatePostResult = await updatePost(posts[0].id, {
-          title: "New Title",
-          content: "Updated Content"
+        console.log("Calling updatePost on posts[1], only updating tags");
+        const updatePostResult = await updatePost(posts[1].id, {
+            tags: ["#youcandoanything", "#redfish", "#bluefish"]
         });
-        console.log("Result:", updatePostResult);
+        console.log('result: ', updatePostResult)
     
         console.log("Calling getUserById with 1");
         const albert = await getUserById(1);
         console.log("Result:", albert);
+
+        console.log('all posts: ', posts);
     
         console.log("Finished database tests!");
 
@@ -153,6 +191,7 @@ async function testDB(){
 
 
 }
+
 
 
 
