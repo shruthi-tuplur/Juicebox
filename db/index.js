@@ -28,7 +28,7 @@ async function getAllPosts() {
         
     ))
     
-    console.log('here are my posts: ', posts)
+    //console.log('here are my posts: ', posts)
     return posts;
 }
 
@@ -287,7 +287,7 @@ async function getPostsByUser(userId) {
             `, [postId]);
 
             
-            const {rows: [tags]} = await client.query(`
+            const {rows: tags} = await client.query(`
             SELECT tags.*
             FROM tags
             JOIN post_tags on tags.id=post_tags."tagId"
@@ -302,6 +302,8 @@ async function getPostsByUser(userId) {
             `, [post.authorId])
 
             post.tags = tags;
+
+            
             post.author = author;
 
             delete post.authorId;
@@ -315,6 +317,27 @@ async function getPostsByUser(userId) {
 
     }
 
+    async function getPostsByTagName(tagName){
+        try {
+            const { rows: postIds} = await client.query(`
+            
+            SELECT posts.id
+            FROM posts
+            JOIN post_tags ON posts.id = post_tags."postId"
+            JOIN tags ON tags.id=post_tags."tagId"
+            WHERE tags.name=$1;
+            
+            `, [tagName]);
+
+            return await Promise.all(postIds.map(
+                post => getPostById(post.id)
+            ));
+
+        } catch (error) {
+            throw error;
+        }
+
+    }
 
 module.exports = {
     client,
@@ -327,5 +350,6 @@ module.exports = {
     getPostsByUser,
     getUserById,
     createTags,
-    addTagsToPost
+    addTagsToPost,
+    getPostsByTagName
 }

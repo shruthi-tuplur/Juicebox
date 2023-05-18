@@ -10,7 +10,8 @@ const {
     updatePost,
     getUserById,
     addTagsToPost,
-    createTags
+    createTags,
+    getPostsByTagName
 } = require('./index');
 
 // this function should calll a query which drops all tables from our database 
@@ -155,6 +156,7 @@ async function testDB(){
     try {
         console.log("Starting to test database...");
 
+        /*
         console.log("Calling getAllUsers");
         const users = await getAllUsers();
         
@@ -165,23 +167,32 @@ async function testDB(){
           location: "Lesterville, KY"
         });
         
-    
-        console.log('Getting all posts…');
-        const posts = await getAllPosts();
         
     
+        console.log('Getting all posts…');
+        */
+        const posts = await getAllPosts();
+        
+        
         console.log("Calling updatePost on posts[1], only updating tags");
         const updatePostResult = await updatePost(posts[1].id, {
             tags: ["#youcandoanything", "#redfish", "#bluefish"]
         });
         console.log('result: ', updatePostResult)
+
+        /*
     
         console.log("Calling getUserById with 1");
         const albert = await getUserById(1);
         console.log("Result:", albert);
 
+        */
         console.log('all posts: ', posts);
     
+        console.log("Calling getPostsByTagName with #happy");
+        const postsWithHappy = await getPostsByTagName("#happy");
+        console.log("Result:", postsWithHappy);
+
         console.log("Finished database tests!");
 
     } catch (error) {
